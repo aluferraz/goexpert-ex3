@@ -1,61 +1,47 @@
 package usecase
 
 import (
-	"github.com/devfullcycle/20-CleanArch/internal/entity"
-	"github.com/devfullcycle/20-CleanArch/pkg/events"
+	"github.com/aluferraz/goexpert-ex3/internal/entity"
 )
 
-type OrderInputDTO struct {
-	ID    string  `json:"id"`
-	Price float64 `json:"price"`
-	Tax   float64 `json:"tax"`
-}
-
-type OrderOutputDTO struct {
+type ListOrdersOutputDTO struct {
 	ID         string  `json:"id"`
 	Price      float64 `json:"price"`
 	Tax        float64 `json:"tax"`
 	FinalPrice float64 `json:"final_price"`
 }
 
-type CreateOrderUseCase struct {
+type ListOrdersUseCase struct {
 	OrderRepository entity.OrderRepositoryInterface
-	OrderCreated    events.EventInterface
-	EventDispatcher events.EventDispatcherInterface
 }
 
-func NewCreateOrderUseCase(
+func NewListOrdersUseCase(
 	OrderRepository entity.OrderRepositoryInterface,
-	OrderCreated events.EventInterface,
-	EventDispatcher events.EventDispatcherInterface,
-) *CreateOrderUseCase {
-	return &CreateOrderUseCase{
+) *ListOrdersUseCase {
+	return &ListOrdersUseCase{
 		OrderRepository: OrderRepository,
-		OrderCreated:    OrderCreated,
-		EventDispatcher: EventDispatcher,
 	}
 }
 
-func (c *CreateOrderUseCase) Execute(input OrderInputDTO) (OrderOutputDTO, error) {
-	order := entity.Order{
-		ID:    input.ID,
-		Price: input.Price,
-		Tax:   input.Tax,
-	}
-	order.CalculateFinalPrice()
-	if err := c.OrderRepository.Save(&order); err != nil {
-		return OrderOutputDTO{}, err
-	}
+func (c *ListOrdersUseCase) Execute() ([]ListOrdersOutputDTO, error) {
 
-	dto := OrderOutputDTO{
-		ID:         order.ID,
-		Price:      order.Price,
-		Tax:        order.Tax,
-		FinalPrice: order.Price + order.Tax,
+	orders, err := c.OrderRepository.ListAll()
+
+	if err != nil {
+		return []ListOrdersOutputDTO{}, err
 	}
-
-	c.OrderCreated.SetPayload(dto)
-	c.EventDispatcher.Dispatch(c.OrderCreated)
-
+	dto := make([]ListOrdersOutputDTO, 0)
+	for _, order := range orders {
+		if err != nil {
+			return []ListOrdersOutputDTO{}, err
+		}
+		dto = append(dto, ListOrdersOutputDTO{
+			ID:         order.ID,
+			Price:      order.Price,
+			Tax:        order.Tax,
+			FinalPrice: order.FinalPrice,
+		})
+	}
 	return dto, nil
+
 }

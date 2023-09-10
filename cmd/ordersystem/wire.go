@@ -6,12 +6,12 @@ package main
 import (
 	"database/sql"
 
-	"github.com/devfullcycle/20-CleanArch/internal/entity"
-	"github.com/devfullcycle/20-CleanArch/internal/event"
-	"github.com/devfullcycle/20-CleanArch/internal/infra/database"
-	"github.com/devfullcycle/20-CleanArch/internal/infra/web"
-	"github.com/devfullcycle/20-CleanArch/internal/usecase"
-	"github.com/devfullcycle/20-CleanArch/pkg/events"
+	"github.com/aluferraz/goexpert-ex3/internal/entity"
+	"github.com/aluferraz/goexpert-ex3/internal/event"
+	"github.com/aluferraz/goexpert-ex3/internal/infra/database"
+	"github.com/aluferraz/goexpert-ex3/internal/infra/web"
+	"github.com/aluferraz/goexpert-ex3/internal/usecase"
+	"github.com/aluferraz/goexpert-ex3/pkg/events"
 	"github.com/google/wire"
 )
 
@@ -48,4 +48,12 @@ func NewWebOrderHandler(db *sql.DB, eventDispatcher events.EventDispatcherInterf
 		web.NewWebOrderHandler,
 	)
 	return &web.WebOrderHandler{}
+}
+
+func NewListAllOrdersUseCase(db *sql.DB) *usecase.ListOrdersUseCase {
+	wire.Build(
+		setOrderRepositoryDependency,
+		usecase.NewListOrdersUseCase,
+	)
+	return &usecase.ListOrdersUseCase{}
 }

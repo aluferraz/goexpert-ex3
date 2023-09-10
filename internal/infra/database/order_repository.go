@@ -2,8 +2,9 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 
-	"github.com/devfullcycle/20-CleanArch/internal/entity"
+	"github.com/aluferraz/goexpert-ex3/internal/entity"
 )
 
 type OrderRepository struct {
@@ -33,4 +34,28 @@ func (r *OrderRepository) GetTotal() (int, error) {
 		return 0, err
 	}
 	return total, nil
+}
+
+func (r *OrderRepository) ListAll() ([]entity.Order, error) {
+	var orders []entity.Order
+	rows, err := r.Db.Query("Select * from orders")
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var order entity.Order
+		fmt.Println(order.ID)
+		if err := rows.Scan(&order.ID, &order.Tax, &order.Price, &order.FinalPrice); err != nil {
+			return nil, err
+		}
+
+		orders = append(orders, order)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return orders, nil
 }

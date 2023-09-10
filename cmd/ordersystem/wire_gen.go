@@ -8,13 +8,17 @@ package main
 
 import (
 	"database/sql"
-	"github.com/devfullcycle/20-CleanArch/internal/entity"
-	"github.com/devfullcycle/20-CleanArch/internal/event"
-	"github.com/devfullcycle/20-CleanArch/internal/infra/database"
-	"github.com/devfullcycle/20-CleanArch/internal/infra/web"
-	"github.com/devfullcycle/20-CleanArch/internal/usecase"
-	"github.com/devfullcycle/20-CleanArch/pkg/events"
+	"github.com/aluferraz/goexpert-ex3/internal/entity"
+	"github.com/aluferraz/goexpert-ex3/internal/event"
+	"github.com/aluferraz/goexpert-ex3/internal/infra/database"
+	"github.com/aluferraz/goexpert-ex3/internal/infra/web"
+	"github.com/aluferraz/goexpert-ex3/internal/usecase"
+	"github.com/aluferraz/goexpert-ex3/pkg/events"
 	"github.com/google/wire"
+)
+
+import (
+	_ "github.com/go-sql-driver/mysql"
 )
 
 // Injectors from wire.go:
@@ -31,6 +35,12 @@ func NewWebOrderHandler(db *sql.DB, eventDispatcher events.EventDispatcherInterf
 	orderCreated := event.NewOrderCreated()
 	webOrderHandler := web.NewWebOrderHandler(eventDispatcher, orderRepository, orderCreated)
 	return webOrderHandler
+}
+
+func NewListAllOrdersUseCase(db *sql.DB) *usecase.ListOrdersUseCase {
+	orderRepository := database.NewOrderRepository(db)
+	listOrdersUseCase := usecase.NewListOrdersUseCase(orderRepository)
+	return listOrdersUseCase
 }
 
 // wire.go:

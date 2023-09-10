@@ -1,4 +1,4 @@
-module github.com/devfullcycle/20-CleanArch
+module github.com/aluferraz/goexpert-ex3
 
 go 1.19
 
