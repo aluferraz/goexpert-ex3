@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/golang-migrate/migrate/v4"
 	"net"
 	"net/http"
 
@@ -20,7 +22,8 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	// mysql
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/golang-migrate/migrate/v4/database/mysql"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 func main() {
@@ -29,11 +32,25 @@ func main() {
 		panic(err)
 	}
 
-	db, err := sql.Open(configs.DBDriver, fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", configs.DBUser, configs.DBPassword, configs.DBHost, configs.DBPort, configs.DBName))
+	db, err := sql.Open(configs.DBDriver, fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?multiStatements=true", configs.DBUser, configs.DBPassword, configs.DBHost, configs.DBPort, configs.DBName))
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
+
+	//Migrations - Adding here since we don't have CI/CD pipeline
+	driver, err := mysql.WithInstance(db, &mysql.Config{})
+	if err != nil {
+		panic(err)
+	}
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://migrations",
+		configs.DBName, driver)
+	if err != nil {
+		panic(err)
+	}
+	m.Up()
+	//
 
 	rabbitMQChannel := getRabbitMQChannel()
 
